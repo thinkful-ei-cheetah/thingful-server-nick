@@ -5,16 +5,12 @@ const helpers = require('./test-helpers')
 describe('Things Endpoints', function() {
   let db
 
-  const {
-    testUsers,
-    testThings,
-    testReviews,
-  } = helpers.makeThingsFixtures()
+  const { testUsers, testThings, testReviews } = helpers.makeThingsFixtures()
 
   before('make knex instance', () => {
     db = knex({
       client: 'pg',
-      connection: process.env.TEST_DB_URL,
+      connection: process.env.TEST_DB_URL
     })
     app.set('db', db)
   })
@@ -36,21 +32,12 @@ describe('Things Endpoints', function() {
 
     context('Given there are things in the database', () => {
       beforeEach('insert things', () =>
-        helpers.seedThingsTables(
-          db,
-          testUsers,
-          testThings,
-          testReviews,
-        )
+        helpers.seedThingsTables(db, testUsers, testThings, testReviews)
       )
 
       it('responds with 200 and all of the things', () => {
         const expectedThings = testThings.map(thing =>
-          helpers.makeExpectedThing(
-            testUsers,
-            thing,
-            testReviews,
-          )
+          helpers.makeExpectedThing(testUsers, thing, testReviews)
         )
         return supertest(app)
           .get('/api/things')
@@ -60,17 +47,12 @@ describe('Things Endpoints', function() {
 
     context(`Given an XSS attack thing`, () => {
       const testUser = helpers.makeUsersArray()[1]
-      const {
-        maliciousThing,
-        expectedThing,
-      } = helpers.makeMaliciousThing(testUser)
+      const { maliciousThing, expectedThing } = helpers.makeMaliciousThing(
+        testUser
+      )
 
       beforeEach('insert malicious thing', () => {
-        return helpers.seedMaliciousThing(
-          db,
-          testUser,
-          maliciousThing,
-        )
+        return helpers.seedMaliciousThing(db, testUser, maliciousThing)
       })
 
       it('removes XSS attack content', () => {
@@ -87,22 +69,22 @@ describe('Things Endpoints', function() {
 
   describe(`GET /api/things/:thing_id`, () => {
     context(`Given no things`, () => {
+      beforeEach(() => 
+        db('thingful_users').insert(testUsers)
+      )
+
       it(`responds with 404`, () => {
         const thingId = 123456
         return supertest(app)
           .get(`/api/things/${thingId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
           .expect(404, { error: `Thing doesn't exist` })
       })
     })
 
     context('Given there are things in the database', () => {
       beforeEach('insert things', () =>
-        helpers.seedThingsTables(
-          db,
-          testUsers,
-          testThings,
-          testReviews,
-        )
+        helpers.seedThingsTables(db, testUsers, testThings, testReviews)
       )
 
       it('responds with 200 and the specified thing', () => {
@@ -110,33 +92,30 @@ describe('Things Endpoints', function() {
         const expectedThing = helpers.makeExpectedThing(
           testUsers,
           testThings[thingId - 1],
-          testReviews,
+          testReviews
         )
 
         return supertest(app)
           .get(`/api/things/${thingId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
           .expect(200, expectedThing)
       })
     })
 
     context(`Given an XSS attack thing`, () => {
       const testUser = helpers.makeUsersArray()[1]
-      const {
-        maliciousThing,
-        expectedThing,
-      } = helpers.makeMaliciousThing(testUser)
+      const { maliciousThing, expectedThing } = helpers.makeMaliciousThing(
+        testUser
+      )
 
       beforeEach('insert malicious thing', () => {
-        return helpers.seedMaliciousThing(
-          db,
-          testUser,
-          maliciousThing,
-        )
+        return helpers.seedMaliciousThing(db, testUser, maliciousThing)
       })
 
       it('removes XSS attack content', () => {
         return supertest(app)
           .get(`/api/things/${maliciousThing.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
           .expect(200)
           .expect(res => {
             expect(res.body.title).to.eql(expectedThing.title)
@@ -152,28 +131,27 @@ describe('Things Endpoints', function() {
         const thingId = 123456
         return supertest(app)
           .get(`/api/things/${thingId}/reviews`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
           .expect(404, { error: `Thing doesn't exist` })
       })
     })
 
     context('Given there are reviews for thing in the database', () => {
       beforeEach('insert things', () =>
-        helpers.seedThingsTables(
-          db,
-          testUsers,
-          testThings,
-          testReviews,
-        )
+        helpers.seedThingsTables(db, testUsers, testThings, testReviews)
       )
 
       it('responds with 200 and the specified reviews', () => {
         const thingId = 1
         const expectedReviews = helpers.makeExpectedThingReviews(
-          testUsers, thingId, testReviews
+          testUsers,
+          thingId,
+          testReviews
         )
 
         return supertest(app)
           .get(`/api/things/${thingId}/reviews`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
           .expect(200, expectedReviews)
       })
     })

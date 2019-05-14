@@ -12,9 +12,21 @@
     "predeploy": "npm audit",
     "deploy": "git push heroku master"
   },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "plugin:node/recommended"
+    ]
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^6.2.0",
+    "eslint": "^5.16.0",
+    "eslint-config": "^0.3.0",
+    "eslint-config-mocha": "0.0.0",
+    "eslint-config-node": "^4.0.0",
+    "eslint-plugin-mocha-only": "0.0.3",
+    "eslint-plugin-node": "^9.0.1",
     "express": "^4.16.4",
     "helmet": "^3.15.0",
     "knex": "^0.16.3",
