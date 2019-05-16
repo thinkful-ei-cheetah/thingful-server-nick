@@ -1,6 +1,13 @@
 const REGEX_UPPER_LOWER_NUMBER_SPECIAL = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&])[\S]+/
 
 const UsersService = {
+  hasUserWithUserName(db, user_name) {
+    return db
+      .from('thingful_users')
+      .where({ user_name })
+      .first()
+      .then(user => !!user)
+  },
   validatePassword(password) {
     if (password.length < 8) {
       return 'Password must be longer than 8 characters'
@@ -17,9 +24,9 @@ const UsersService = {
     if (!REGEX_UPPER_LOWER_NUMBER_SPECIAL.test(password)) {
       return 'Password must contain 1 Uppercase, 1 Lowercase, 1 Number, and 1 Special Character'
     }
-    
+
     return null
-  }
+  },
 }
 
 module.exports = UsersService
